@@ -1,4 +1,4 @@
-//Current http://phaser.io/tutorials/making-your-first-phaser-game/part7
+//Finished the tutorial
 
 var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
@@ -11,7 +11,9 @@ function preload()
 	game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 }
 
-var player, ground, ledge, cursors;
+var player, ground, ledge, cursors, stars, platforms;
+var score = 0;
+var scoreText;
 
 function create() 
 {
@@ -44,14 +46,31 @@ function create()
 	player.animations.add('left', [0, 1, 2, 3], 10, true);
 	player.animations.add('right', [5, 6, 7, 8], 10, true);
 	
+	//Stars
+	stars = game.add.group();
+	stars.enableBody = true;
+	for (var i = 0; i < 12; i++)
+	{
+		var star = stars.create(i * 70, 0, 'star');
+		star.body.gravity.y = 300;
+		star.body.bounce.y = 0.7 + Math.random() * 0.2;
+	}
+	
+	//Score Initialize
+	scoreText = game.add.text(16, 16, 'Score: 0', {fontSize: '32px', fill: '#000'});
+	
 	//Player control
 	cursors = game.input.keyboard.createCursorKeys();
 }
 
 function update() 
 {
-	//Collision between playtforms and player
+	//Collision between playtforms and player and star
 	var hitPlatform = game.physics.arcade.collide(player, platforms);
+	game.physics.arcade.collide(stars, platforms);
+	
+	//Checks for overlap of player and star -> then calls collectStar function
+	game.physics.arcade.overlap(player, stars, collectStar, null, this);
 	
 	//Player x movement
 	player.body.velocity.x = 0;
@@ -77,5 +96,16 @@ function update()
 	if (cursors.up.isDown && player.body.touching.down && hitPlatform)
 	{
         player.body.velocity.y = -400;
+	}
+	
+	//Collecting stars
+	function collectStar (player, star)
+	{
+		//Removes star from screen
+		star.kill();
+		
+		//Change score
+		score += 10;
+		scoreText.text = 'Score: ' + score;
 	}
 }
