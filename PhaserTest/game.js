@@ -65,7 +65,7 @@ function create()
 
 function update() 
 {
-	//Collision between playtforms and player and star
+	//Collision between platforms and player and star
 	var hitPlatform = game.physics.arcade.collide(player, platforms);
 	game.physics.arcade.collide(stars, platforms);
 	
