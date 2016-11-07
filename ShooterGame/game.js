@@ -15,6 +15,7 @@ function preload()
 
 var sky, platforms, ground, ledge;
 var player, enemy;
+var bulletKey;
 
 function create() 
 {
@@ -60,6 +61,7 @@ function create()
 	
 	//Player controls
 	cursors = game.input.keyboard.createCursorKeys();
+	bulletKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 }
 
 function update() 
@@ -89,5 +91,11 @@ function update()
 	if(cursors.up.isDown && player.body.touching.down)
 	{
 		player.body.velocity.y = -450;
+	}
+	
+	//Shoots bullets
+	if(bulletKey.isDown)
+	{
+		
 	}
 }
