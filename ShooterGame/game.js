@@ -11,14 +11,23 @@ function preload()
 	game.load.image('firstaid', 'assets/firstaid.png');
 	game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 	game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
+	game.load.audio('animalCrossingMP3', 'assets/animalCrossing.mp3');
+	game.load.audio('tobyFoxMP3', 'assets/dogBass.mp3');
 }
 
 var sky, platforms, ground, ledge;
 var player, enemy;
 var bulletKey;
+var cursors;
+var muOne, muTwo;
 
 function create() 
 {
+	//Music
+	muOne = game.add.audio('animalCrossingMP3');
+	muTwo = game.add.audio('tobyFoxMP3');
+	
+	//Arcade Physics
 	game.physics.startSystem(Phaser.Physics.ARCADE);
 	//Sky
 	sky = game.add.sprite(0, 0, 'sky');
@@ -98,4 +107,6 @@ function update()
 	{
 		
 	}
+	
+	//muOne.play();
 }
