@@ -1,7 +1,11 @@
 //Shooter and brawl type game
+var game = new Phaser.Game(1500, 1000, Phaser.AUTO);
 
-var game = new Phaser.Game(1200, 900, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+game.state.add('state1', demo.state1);
+game.state.add('state2', demo.state2);
+game.state.start('state1');
 
+/*
 function preload() 
 {
 	//Load Assets
@@ -20,6 +24,7 @@ var player, enemy;
 var bulletKey;
 var cursors;
 var muOne, muTwo;
+var star;
 
 function create() 
 {
@@ -105,8 +110,9 @@ function update()
 	//Shoots bullets
 	if(bulletKey.isDown)
 	{
-		
+		muOne.play();
 	}
 	
 	//muOne.play();
 }
+*/
