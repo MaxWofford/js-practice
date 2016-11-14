@@ -11,13 +11,14 @@ function preload()
 	game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
 	game.load.audio('animalCrossingMP3', 'assets/animalCrossing.mp3');
 	game.load.audio('tobyFoxMP3', 'assets/dogBass.mp3');
+	game.load.audio('diddyKongMP3', 'assets/diddyKong.mp3');
 }
 
 var sky, platforms, ground, ledge;
 var player, enemy;
 var bulletKey;
 var cursors;
-var muOne, muTwo;
+var muOne, muTwo, muThree;
 var star;
 
 function create() 
@@ -25,6 +26,8 @@ function create()
 	//Music
 	muOne = game.add.audio('animalCrossingMP3');
 	muTwo = game.add.audio('tobyFoxMP3');
+	muThree = game.add.audio('diddyKongMP3');
+	muThree.play();
 	
 	//Arcade Physics
 	game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -104,8 +107,5 @@ function update()
 	//Shoots bullets
 	if(bulletKey.isDown)
 	{
-		muOne.play();
 	}
-	
-	//muOne.play();
 }
