@@ -14,20 +14,19 @@ function preload()
 	game.load.audio('diddyKongMP3', 'assets/diddyKong.mp3');
 }
 
-var sky, platforms, ground, ledge;
-var player, enemy;
-var bulletKey;
-var cursors;
-var muOne, muTwo, muThree;
-var star;
-
+var sky, platforms, ground, ledge; //BG
+var player, enemy; //Characters
+var arrowKeys, spaceKey; //Keyboard
+var muOne, muTwo, muThree; //Music
+var bullets; 
+var bulletSpeed = 600;
 function create() 
 {
 	//Music
 	muOne = game.add.audio('animalCrossingMP3');
 	muTwo = game.add.audio('tobyFoxMP3');
 	muThree = game.add.audio('diddyKongMP3');
-	muThree.play();
+	//muThree.play();
 	
 	//Arcade Physics
 	game.physics.startSystem(Phaser.Physics.ARCADE);
@@ -71,8 +70,8 @@ function create()
 	enemy.body.collideWorldBounds = true;
 	
 	//Player controls
-	cursors = game.input.keyboard.createCursorKeys();
-	bulletKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+	arrowKeys = game.input.keyboard.createCursorKeys();
+	spaceKey = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 }
 
 function update() 
@@ -83,15 +82,17 @@ function update()
 	
 	//Player movement
 	player.body.velocity.x = 0;
-	if (cursors.left.isDown)
+	if (arrowKeys.left.isDown)
 	{
 		player.body.velocity.x = -150;
 		player.animations.play('left');
+		player.direction = 0;
 	}
-	else if (cursors.right.isDown)
+	else if (arrowKeys.right.isDown)
 	{
 		player.body.velocity.x = 150;
 		player.animations.play('right');
+		player.direction = 1;
 	}
 	else
 	{
@@ -99,13 +100,34 @@ function update()
 		player.frame = 4;
 	}
 	//Jump and double jump
-	if(cursors.up.isDown && player.body.touching.down)
+	if(arrowKeys.up.isDown && player.body.touching.down)
 	{
 		player.body.velocity.y = -450;
 	}
 	
 	//Shoots bullets
-	if(bulletKey.isDown)
+	if(spaceKey.isDown)
 	{
+		bullets = game.add.sprite(player.x, player.y, 'star');
+		game.physics.arcade.enable(bullets);
+		
+		if (player.direction === 1)
+		{
+			bullets.body.velocity.x = bulletSpeed;
+		}
+		else if (player.direction === 0)
+		{
+			bullets.body.velocity.x = -bulletSpeed;
+		}
+		bulletEnemyCollision();
+	}
+}
+
+
+function bulletEnemyCollision()
+{
+	if(game.physics.arcade.collide(enemy, bullets))
+	{
+		enemy.destroy();
 	}
 }
