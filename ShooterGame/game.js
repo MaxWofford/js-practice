@@ -1,4 +1,6 @@
-var game = new Phaser.Game(1200, 900, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+var width = 1200, height = 900; 
+
+var game = new Phaser.Game(width, height, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 function preload() 
 {
@@ -13,13 +15,19 @@ function preload()
 	game.load.audio('tobyFoxMP3', 'assets/dogBass.mp3');
 	game.load.audio('diddyKongMP3', 'assets/diddyKong.mp3');
 }
-
+var gravity = 650; //World Properties
+var score = 0; //Score keeping ***
 var sky, platforms, ground, ledge; //BG
-var player, enemy; //Characters
+var player, enemyNum = 4; //Characters
 var arrowKeys, spaceKey; //Keyboard
 var muOne, muTwo, muThree; //Music
-var bullets; 
-var bulletSpeed = 600;
+var bulletSpeed = 600; //Projectiles
+var nextFire = 0, fireRate = 400; //Gun
+
+
+var bulletArr = new Array();
+var enemyArr = new Array();
+
 function create() 
 {
 	//Music
@@ -43,31 +51,42 @@ function create()
 	//Ledges
 	ledge = platforms.create(300, 700, 'ground');
 	ledge.body.immovable = true;
-	ledge = platforms.create(800, 500, 'ground');
+	ledge = platforms.create(1000, 700, 'ground');
 	ledge.body.immovable = true;
-	ledge = platforms.create(-200, 550, 'ground');
+	ledge = platforms.create(-200, 600, 'ground');
 	ledge.body.immovable = true;
 	
 	//Player Sprites
-	player = game.add.sprite(600, 450, 'dude');
+	player = game.add.sprite(width/2, height/2, 'dude');
 	game.physics.arcade.enable(player);
 	player.body.bounce.y = 0.2;
-	player.body.gravity.y = 600;
+	player.body.gravity.y = gravity;
 	player.body.bounce.x = 0.4;
+	player.body.collideWorldBounds = true;
 	//PlayerAnimations
 	player.animations.add('left', [0, 1, 2, 3], 10, true);
 	player.animations.add('right', [5, 6, 7, 8], 10, true);
+	player.direction = 0;
 	
 	//Enemy Sprites
-	enemy = game.add.sprite(100, 100, 'baddie');
-	game.physics.arcade.enable(enemy);
-	enemy.body.bounce.y = 0.2;
-	enemy.body.gravity.y = 800;
-	enemy.body.bounce.x = 0.4;
-	
-	//Collision with world
-	player.body.collideWorldBounds = true;
-	enemy.body.collideWorldBounds = true;
+	for (var i = 0; i < enemyNum; i++)
+	{
+		do //Find random number between screen (that isnt close to player) and set it as x for enemy
+		{
+			var randomX = Math.random() * (width - 100) + 100;
+		} 
+		while ((randomX > (width/2 - 100)) && (randomX < (width/2 + 100)));
+			
+		var enemy = game.add.sprite(randomX, 100, 'baddie');
+		game.physics.arcade.enable(enemy);
+		enemy.body.bounce.y = 0.2;
+		enemy.body.gravity.y = gravity;
+		enemy.body.bounce.x = 0.4;
+		enemy.body.collideWorldBounds = true;
+		enemyArr[i] = enemy;
+		enemyArr[i].direction = Math.round(Math.random());
+		debug(enemyArr[i].direction);
+	}
 	
 	//Player controls
 	arrowKeys = game.input.keyboard.createCursorKeys();
@@ -76,9 +95,10 @@ function create()
 
 function update() 
 {
+	//Collision
 	game.physics.arcade.collide(player, platforms);
-	game.physics.arcade.collide(enemy, platforms);
-	game.physics.arcade.collide(player,enemy);
+	game.physics.arcade.collide(platforms, enemyArr);
+	game.physics.arcade.collide(player,enemyArr);
 	
 	//Player movement
 	player.body.velocity.x = 0;
@@ -94,40 +114,110 @@ function update()
 		player.animations.play('right');
 		player.direction = 1;
 	}
-	else
+	else //When player stops moving, sets the sprite pic
 	{
 		player.animations.stop(0);
-		player.frame = 4;
+		if (player.direction ===  0)
+		{
+			player.frame = 0;
+		}
+		else 
+		{
+			player.frame = 5;
+		}
 	}
+	
 	//Jump and double jump
 	if(arrowKeys.up.isDown && player.body.touching.down)
 	{
 		player.body.velocity.y = -450;
 	}
 	
-	//Shoots bullets
-	if(spaceKey.isDown)
+	//NOT WORKING *** 
+	// var rect = new Phaser.Rectangle(0, 0, 200, 50);
+	// game.debug.geom(rect, '#0fffff');
+	// game.add.text(0, 0, "Score: " + score, {fill: "#ff0000"}); 
+	
+	shootBullet();
+	bulletEnemyCollision();
+	enemyMovement();
+}
+
+function enemyMovement() //Artificial intelligence omg
+{
+	for (var i = 0; i < enemyNum; i++)
 	{
-		bullets = game.add.sprite(player.x, player.y, 'star');
-		game.physics.arcade.enable(bullets);
-		
-		if (player.direction === 1)
+		if(enemyArr[i].direction === 0)
 		{
-			bullets.body.velocity.x = bulletSpeed;
+			enemyArr[i].body.velocity.x = -50;
+			if((Math.round(Math.random() + 0.49)) === 0)
+			{
+				enemyArr[i].direction = 1;
+			}
 		}
-		else if (player.direction === 0)
+		else if (enemyArr[i].direction === 1)
 		{
-			bullets.body.velocity.x = -bulletSpeed;
+			enemyArr[i].body.velocity.x = 50;
+			if((Math.round(Math.random() + 0.49)) === 0)
+			{
+				enemyArr[i].direction = 0;
+			}
 		}
-		bulletEnemyCollision();
 	}
 }
 
+function shootBullet()
+{
+	if(game.time.now > nextFire)
+	{
+		if(spaceKey.isDown)
+		{
+			var bullets = game.add.sprite(player.x, player.y, 'star');
+			game.physics.arcade.enable(bullets);
+			
+			bulletArr[bulletArr.length] = bullets;
+			
+			if (player.direction === 1)
+			{
+				bullets.body.velocity.x = bulletSpeed;
+			}
+			else if (player.direction === 0)
+			{
+				bullets.body.velocity.x = -bulletSpeed;
+			}
+			nextFire = game.time.now + fireRate;
+		}
+	}
+}
 
 function bulletEnemyCollision()
 {
-	if(game.physics.arcade.collide(enemy, bullets))
+	for (var enemyIndex = 0; enemyIndex < enemyArr.length; enemyIndex++)
 	{
-		enemy.destroy();
+		for (var bulletIndex = 0; bulletIndex < bulletArr.length; bulletIndex++)
+		{
+			if(game.physics.arcade.collide(enemyArr[enemyIndex], bulletArr[bulletIndex]))
+			{
+				death(enemyArr[enemyIndex]);
+				bulletArr[bulletIndex].destroy();
+			}
+		}
 	}
+}
+
+function death(sprite)
+{
+	//Fades the sprite
+	game.add.tween(sprite).to( { alpha: 0 }, 150, Phaser.Easing.Linear.None, true);
+	//If the sprite is faded, then destroy it
+	if(sprite.alpha === 0)
+	{
+		sprite.destroy();
+		score++; //Increases score ***
+	}
+}
+
+function debug(x)
+{
+	console.log("Debug: " + x);
 }
